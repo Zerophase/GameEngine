@@ -1,18 +1,23 @@
 #include "StackAllocator.h"
 
 #include <stdlib.h>
-
 StackAllocator::StackAllocator(std::uint32_t stackSizeBytes)
 {
 	currentTop = stackSizeBytes;
 	bottomOfStack = &stackSizeBytes;
-	topOfStack = &stackSizeBytes;
-	malloc(stackSizeBytes);
+	
+	usedMemory = 0;
+	numAllocations = 0;
+}
+
+StackAllocator::~StackAllocator()
+{
+	bottomOfStack = nullptr;
 }
 
 void *StackAllocator::alloc(std::uint32_t sizeBytes)
 {
-	bottomOfStack = &sizeBytes;
+	bottomOfStack += *&sizeBytes;
 	return alloc(*bottomOfStack);
 }
 
@@ -23,7 +28,9 @@ StackAllocator::Marker StackAllocator::GetMarker()
 
 void StackAllocator::FreeToMarker(StackAllocator::Marker marker)
 {
-	*bottomOfStack = marker;
+	//TODO is this needed?
+	delete bottomOfStack;
+	bottomOfStack = &marker;
 }
 
 void StackAllocator::Clear()

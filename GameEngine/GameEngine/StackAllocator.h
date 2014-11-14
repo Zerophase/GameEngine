@@ -14,6 +14,7 @@ public:
 	typedef std::uint32_t Marker;
 
 	explicit StackAllocator(std::uint32_t stackSizeBytes);
+	virtual ~StackAllocator();
 
 	void *alloc(std::uint32_t sizeBytes);
 
@@ -26,10 +27,17 @@ public:
 	Marker *BottomOfStack() { return bottomOfStack; }
 
 private:
-	Marker *topOfStack;
-	Marker *bottomOfStack;
+	std::uint32_t *topOfStack;
+	std::uint32_t *bottomOfStack;
 
 	Marker currentTop;
+
+	//Use for size if different sized memory is used
+	//size_t size;
+
+	std::uint32_t usedMemory;
+	std::uint32_t numAllocations;
+	
 };
 
 #endif // !STACK_ALLOCATOR_H
