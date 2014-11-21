@@ -12,9 +12,9 @@ int main()
 
 	memoryManager.StartUp();
 
-	memoryManager.Get()->stackAllocator->alloc(32);
+	/*memoryManager.Get()->stackAllocator->alloc(32);
 	std::cout << memoryManager.Get()->stackAllocator->TopOfStack();
-	std::cout << memoryManager.Get()->stackAllocator->BottomOfStack();
+	std::cout << memoryManager.Get()->stackAllocator->BottomOfStack();*/
 
 	memoryManager.ShutDown();
 

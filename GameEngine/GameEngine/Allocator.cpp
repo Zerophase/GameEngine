@@ -1,8 +1,6 @@
 #include "Allocator.h"
 
-#include <assert.h>
-
-Allocator::Allocator(std::uint32_t sizeBytes, void *start)
+Allocator::Allocator(u32 sizeBytes, void *start)
 {
 	this->start = start;
 	this->size = size;
@@ -14,7 +12,7 @@ Allocator::Allocator(std::uint32_t sizeBytes, void *start)
 
 Allocator::~Allocator()
 {
-	assert(numAllocations == 0 && usedMemory == 0);
+	ASSERT(numAllocations == 0 && usedMemory == 0);
 
 	start = nullptr;
 	size = 0;
@@ -25,17 +23,17 @@ void *Allocator::GetStart() const
 	return start;
 }
 
-std::uint32_t Allocator::GetSize() const
+u32 Allocator::GetSize() const
 {
 	return size;
 }
 
-std::uint32_t Allocator::GetUsedMemory() const
+u32 Allocator::GetUsedMemory() const
 {
 	return usedMemory;
 }
 
-std::uint32_t Allocator::GetNumAllocations() const
+u32 Allocator::GetNumAllocations() const
 {
 	return numAllocations;
 }

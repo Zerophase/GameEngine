@@ -1,28 +1,30 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H
 
-#include <cstdint>
+#include "Types.h"
+#include "Debug.h"
+#include "PointerMath.h"
 
 class Allocator
 {
 public:
-	Allocator(std::uint32_t sizeBytes, void *start);
+	Allocator(u32 sizeBytes, void *start);
 	virtual ~Allocator();
 
-	virtual void *Allocate(std::uint32_t size, std::uint8_t alignment = 4) = 0;
+	virtual void *Allocate(u32 size, u8 alignment = 4) = 0;
 	virtual void Deallocate(void *p) = 0;
 
 	void *GetStart() const;
-	std::uint32_t GetSize() const;
-	std::uint32_t GetUsedMemory() const;
-	std::uint32_t GetNumAllocations() const;
+	u32 GetSize() const;
+	u32 GetUsedMemory() const;
+	u32 GetNumAllocations() const;
 
 protected:
 	void *start;
-	std::uint32_t size;
+	u32 size;
 
-	std::uint32_t usedMemory;
-	std::uint32_t numAllocations;
+	u32 usedMemory;
+	u32 numAllocations;
 };
 
 #endif // !ALLOCATOR_H

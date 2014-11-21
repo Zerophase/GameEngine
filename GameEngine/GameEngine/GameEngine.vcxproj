@@ -66,15 +66,25 @@
   <ItemGroup>
     <ClInclude Include="AllocationSchemas.h" />
     <ClInclude Include="Allocator.h" />
+    <ClInclude Include="Debug.h" />
+    <ClInclude Include="FreeListAllocator.h" />
+    <ClInclude Include="LinearAllocator.h" />
     <ClInclude Include="MemoryManager.h" />
+    <ClInclude Include="PointerMath.h" />
+    <ClInclude Include="PoolAllocator.h" />
+    <ClInclude Include="ProxyAllocator.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="StackAllocator.h" />
+    <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Allocator.cpp" />
-    <ClCompile Include="AlocationSchemas.cpp" />
+    <ClCompile Include="FreeListAllocator.cpp" />
+    <ClCompile Include="LinearAllocator.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
+    <ClCompile Include="PoolAllocator.cpp" />
+    <ClCompile Include="ProxyAllocator.cpp" />
     <ClCompile Include="StackAllocator.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

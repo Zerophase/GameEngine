@@ -1,43 +1,34 @@
 #ifndef STACK_ALLOCATOR_H
 #define STACK_ALLOCATOR_H
 
-#include <cstdint>
+#include "Allocator.h"
 
-class StackAllocator
+class StackAllocator : public Allocator
 {
 public:
-	/*void *operator new(size_t size);
-	void operator delete (void *mem);
-	void *operator new[] (size_t size);
-	void operator delete[] (void *mem);*/
+	StackAllocator(u32 sizeBytes, void *start);
+	~StackAllocator();
 
-	typedef std::uint32_t Marker;
-
-	explicit StackAllocator(std::uint32_t stackSizeBytes);
-	virtual ~StackAllocator();
-
-	void *alloc(std::uint32_t sizeBytes);
-
-	Marker GetMarker();
-
-	void FreeToMarker(Marker marker);
-
-	void Clear();
-	Marker *TopOfStack() { return topOfStack; }
-	Marker *BottomOfStack() { return bottomOfStack; }
+	void *Allocate(u32 size, u8 alignment) override;
+	void Deallocate(void *p) override;
 
 private:
-	std::uint32_t *topOfStack;
-	std::uint32_t *bottomOfStack;
+	StackAllocator(const StackAllocator&);
+	StackAllocator &operator=(const StackAllocator&);
 
-	Marker currentTop;
+	struct  AllocationHeader
+	{
+		#if _DEBUG
+		void *prev_address;
+		#endif // _DEBUG
+		u8 adjustment;
+	};
 
-	//Use for size if different sized memory is used
-	//size_t size;
-
-	std::uint32_t usedMemory;
-	std::uint32_t numAllocations;
+	#if _DEBUG
+	void *_prev_position;
+	#endif // _DEBUG
 	
+	void *currentPosition;
 };
 
 #endif // !STACK_ALLOCATOR_H

@@ -14,7 +14,6 @@ Utilities::MemoryManager::~MemoryManager()
 void Utilities::MemoryManager::StartUp()
 {
 	memoryManager = new MemoryManager();
-	stackAllocator = new StackAllocator(128);
 }
 
 void Utilities::MemoryManager::ShutDown()

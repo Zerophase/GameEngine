@@ -1,60 +1,70 @@
 #include "StackAllocator.h"
 
 #include <stdlib.h>
-StackAllocator::StackAllocator(std::uint32_t stackSizeBytes)
+StackAllocator::StackAllocator(u32 sizeBytes, void *start)
+	:Allocator(sizeBytes, start), currentPosition(start)
 {
-	currentTop = stackSizeBytes;
-	bottomOfStack = &stackSizeBytes;
-	
-	usedMemory = 0;
-	numAllocations = 0;
+	ASSERT(sizeBytes > 0);
+
+	#if _DEBUG
+	_prev_position = nullptr;
+	#endif
 }
 
 StackAllocator::~StackAllocator()
 {
-	bottomOfStack = nullptr;
+	#if _DEBUG
+	_prev_position = nullptr;
+	#endif // _DEBUG
+
+	currentPosition = nullptr;
 }
 
-void *StackAllocator::alloc(std::uint32_t sizeBytes)
+void *StackAllocator::Allocate(u32 sizeBytes, u8 alignment)
 {
-	bottomOfStack += *&sizeBytes;
-	return alloc(*bottomOfStack);
+	ASSERT(sizeBytes != 0);
+
+	u8 adjustment = PointerMath::alignForwardAdjustmentWithHeader(currentPosition,
+		alignment, sizeof(AllocationHeader));
+
+	if (usedMemory + adjustment + sizeBytes > size)
+		return nullptr;
+
+	void *alignedAddress = PointerMath::Add(currentPosition, adjustment);
+
+	AllocationHeader *header = (AllocationHeader*) 
+		(PointerMath::Subtract(alignedAddress, sizeof(AllocationHeader)));
+
+	header->adjustment = adjustment;
+
+	#if _DEBUG
+	header->prev_address = _prev_position;
+	_prev_position = alignedAddress;
+	#endif // _DEBUG
+
+	currentPosition = PointerMath::Add(alignedAddress, sizeBytes);
+
+	usedMemory += size + adjustment;
+	numAllocations++;
+
+	return alignedAddress;
 }
 
-StackAllocator::Marker StackAllocator::GetMarker()
+void StackAllocator::Deallocate(void *p)
 {
-	return currentTop;
-}
+	ASSERT(p == _prev_position);
 
-void StackAllocator::FreeToMarker(StackAllocator::Marker marker)
-{
-	//TODO is this needed?
-	delete bottomOfStack;
-	bottomOfStack = &marker;
-}
+	// Access the AllocationHeader in the bytes before p
+	AllocationHeader *header = (AllocationHeader*)
+		(PointerMath::Subtract(p, sizeof(AllocationHeader)));
 
-void StackAllocator::Clear()
-{
-	delete topOfStack;
-	delete bottomOfStack;
-}
+	usedMemory -= (uptr) currentPosition - (uptr) p + header->adjustment;
 
-//void *StackAllocator::operator new(size_t size)
-//{
-//	return malloc(size);
-//}
-//
-//void *StackAllocator::operator new[](size_t size)
-//{
-//	return malloc(size);
-//}
-//
-//void StackAllocator::operator delete(void *mem)
-//{
-//	free(mem);
-//}
-//
-//void StackAllocator::operator delete[](void *mem)
-//{
-//	free(mem);
-//}
+	currentPosition = PointerMath::Subtract(p, header->adjustment);
+
+	#if _DEBUG
+	_prev_position = header->prev_address;
+	#endif // _DEBUG
+
+	numAllocations--;
+}

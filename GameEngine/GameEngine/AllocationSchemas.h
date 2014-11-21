@@ -1,10 +1,11 @@
 #ifndef ALLOCATION_SCHEMAS_H
 #define ALLOCATION_SCHEMAS_H
 
-#include "AllocationSchemas.h"
+#include "Types.h"
+#include "Debug.h"
+
 #include "Allocator.h"
 
-#include <assert.h>
 
 namespace allocator
 {
@@ -26,9 +27,9 @@ namespace allocator
 
 	template<class T> T *newArrayAllocate(Allocator &allocator, size_t length)
 	{
-		assert(length != 0);
+		ASSERT(length != 0);
 
-		std::uint8_t headerSize = sizeof(size_t) / sizeof(T);
+		u8 headerSize = sizeof(size_t) / sizeof(T);
 
 		if (sizeof(size_t) % sizeof(T) > 0)
 			headerSize += 1;
@@ -44,14 +45,14 @@ namespace allocator
 
 	template<class T> void deleteArrayDeallocate(Allocator &allocator, T *arrayType)
 	{
-		assert(arrayType != nullptr);
+		ASSERT(arrayType != nullptr);
 
 		size_t length = *(((size_t*)arrayType) - 1);
 
 		for (size_t i = 0; i < length; i++)
 			arrayType[i].~T();
 
-		std::uint8_t headerSize = sizeof(size_t) / sizeof(T);
+		u8 headerSize = sizeof(size_t) / sizeof(T);
 
 		if (sizeof(size_t) % sizeof(T) > 0)
 			headerSize += 1;
