@@ -11,8 +11,6 @@ namespace Utilities
 	private:
 		static MemoryManager *memoryManager;
 
-		
-
 	public:
 		MemoryManager();
 		~MemoryManager();

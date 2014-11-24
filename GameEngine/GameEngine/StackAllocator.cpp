@@ -44,7 +44,7 @@ void *StackAllocator::Allocate(u32 sizeBytes, u8 alignment)
 
 	currentPosition = PointerMath::Add(alignedAddress, sizeBytes);
 
-	usedMemory += size + adjustment;
+	usedMemory += sizeBytes + adjustment;
 	numAllocations++;
 
 	return alignedAddress;

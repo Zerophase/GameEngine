@@ -2,7 +2,7 @@
 
 
 LinearAllocator::LinearAllocator(u32 sizeBytes, void *start)
-	: Allocator(sizeBytes, start)
+	: Allocator(sizeBytes, start), currentPosition(start)
 {
 	ASSERT(size > 0);
 }
@@ -18,7 +18,7 @@ void *LinearAllocator::Allocate(u32 size, u8 alignment)
 
 	u8 adjustment = PointerMath::alignForwardAdjustment(currentPosition, alignment);
 
-	if (usedMemory + adjustment + this->size > size)
+	if (usedMemory + adjustment + size > this->size)
 		return nullptr;
 
 	uptr alignedAddress = (uptr) currentPosition + adjustment;

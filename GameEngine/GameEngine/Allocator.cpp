@@ -3,7 +3,7 @@
 Allocator::Allocator(u32 sizeBytes, void *start)
 {
 	this->start = start;
-	this->size = size;
+	this->size = sizeBytes;
 
 	usedMemory = 0;
 	numAllocations = 0;
