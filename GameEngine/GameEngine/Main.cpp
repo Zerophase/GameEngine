@@ -19,14 +19,13 @@ void *mem;
 
 void GetLinearAllocator()
 {
-	
-	LinearAllocator *linearAllocator = new LinearAllocator(MEM_SIZE, mem);
+	memoryManager.Get()->CreateLinearAllocator();
 
 	int *number[MAX_NUM_ALLOCS];
 	for (uint i = 1; i < 34; i++)
 	{
 		// Still need to pass in size of the object
-		number[i - 1] = (int*) linearAllocator->Allocate(32, 8);
+		number[i - 1] = (int*)memoryManager.Get()->AllocateLinearAllocator(32, 8);
 		*number[i - 1] = i;
 	}
 
@@ -36,8 +35,7 @@ void GetLinearAllocator()
 			"Number Value: " << *number[i] << std::endl;
 	}
 
-	linearAllocator->Clear();
-	delete linearAllocator;
+	memoryManager.Get()->ClearLinearAllocator();
 }
 
 void GetStackAllocator()
@@ -68,12 +66,12 @@ void GetStackAllocator()
 
 void GetFreeListAllocator()
 {
-	FreeListAllocator *freeListAllocator = new FreeListAllocator(MEM_SIZE, mem);
+	memoryManager.Get()->CreateFreeListAllocator();
 
 	int *number[MAX_NUM_ALLOCS];
 	for (uint i = 0; i < 34; i++)
 	{
-		number[i] = (int*)freeListAllocator->Allocate(32, 8);
+		number[i] = (int*)memoryManager.Get()->AllocateFreeListAllocator(32, 8);
 		*number[i] = i + 1;
 	}
 
@@ -85,10 +83,8 @@ void GetFreeListAllocator()
 
 	for (int i = 0; i < 34; i++)
 	{
-		freeListAllocator->Deallocate(number[i]);
+		memoryManager.Get()->DeallocateFreeListAllocator(number);
 	}
-
-	delete freeListAllocator;
 }
 
 void GetPoolAllocator()
@@ -125,23 +121,73 @@ int main()
 	mem = malloc(MEM_SIZE);
 
 	std::cout << "Linear Allocator" << std::endl;
-	GetLinearAllocator();
+	//GetLinearAllocator();
+	memoryManager.Get()->CreateLinearAllocator();
+
+	int *numberOne[MAX_NUM_ALLOCS];
+	for (uint i = 1; i < 34; i++)
+	{
+		// Still need to pass in size of the object
+		numberOne[i - 1] = (int*)memoryManager.Get()->AllocateLinearAllocator(32, 8);
+		*numberOne[i - 1] = i * 2;
+	}
+
+	for (int i = 0; i < 33; i++)
+	{
+		std::cout << "Number Address: " << numberOne[i] <<
+			"Number Value: " << *numberOne[i] << std::endl;
+	}
+
+	//memoryManager.Get()->ClearLinearAllocator();
 
 	std::cout << std::endl;
 
-	std::cout << "Stack Allocator" << std::endl;
-	GetStackAllocator();
+	/*std::cout << "Stack Allocator" << std::endl;
+	GetStackAllocator();*/
 
 	std::cout << std::endl;
 
 	std::cout << "Free List Allocator" << std::endl;
-	GetFreeListAllocator();
+	//GetFreeListAllocator();
+	memoryManager.Get()->CreateFreeListAllocator();
+
+	int *numberTwo[MAX_NUM_ALLOCS];
+	for (uint i = 0; i < 34; i++)
+	{
+		numberTwo[i] = (int*)memoryManager.Get()->AllocateFreeListAllocator(32, 8);
+		*numberTwo[i] = i + 1;
+	}
+
+	for (int i = 0; i < 34; i++)
+	{
+		std::cout << "Number Address: " << numberTwo[i] <<
+			"Number Value: " << *numberTwo[i] << std::endl;
+	}
 
 	std::cout << std::endl;
 
-	std::cout << "Pool Allocator" << std::endl;
-	GetPoolAllocator();
+	std::cout << "Linear Allocator Values" << std::endl;
 
+	for (int i = 0; i < 33; i++)
+	{
+		std::cout << "Number Address: " << numberOne[i] <<
+			"Number Value: " << *numberOne[i] << std::endl;
+	}
+
+	memoryManager.Get()->ClearLinearAllocator();
+
+	for (int i = 0; i < 34; i++)
+	{
+		memoryManager.Get()->DeallocateFreeListAllocator(numberTwo[i]);
+	}
+
+	std::cout << std::endl;
+
+	/*std::cout << "Pool Allocator" << std::endl;
+	GetPoolAllocator();*/
+
+	memoryManager.Get()->DestroyFreeListAllocator();
+	memoryManager.Get()->DestroyLinearAllocator();
 	memoryManager.ShutDown();
 
 	std::cin.get();
