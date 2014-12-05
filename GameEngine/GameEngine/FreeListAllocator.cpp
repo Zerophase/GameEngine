@@ -2,11 +2,11 @@
 
 
 FreeListAllocator::FreeListAllocator(u32 sizeBytes, void *start)
-	:Allocator(sizeBytes, start)
-{
-	ASSERT(size > sizeof(FreeBlock));
+	:Allocator(sizeBytes, start), freeBlocks((FreeBlock*)start)
+{ 
+	ASSERT(sizeBytes > sizeof(FreeBlock));
 
-	freeBlocks->size = size;
+	freeBlocks->size = sizeBytes;
 	freeBlocks->next = nullptr;
 }
 
