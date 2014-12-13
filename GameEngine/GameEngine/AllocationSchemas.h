@@ -9,6 +9,10 @@
 
 namespace allocator
 {
+	// Use this for creating classes
+	// example usage :
+	// TestObject *thing 
+	// = allocator::newAllocate<TestObject>(memoryManager.Get()->GetLinearAllocator());
 	template<class T> T *newAllocate(Allocator &allocator)
 	{
 		return new (allocator.Allocate(sizeof(T), __alignof(T))) T;
@@ -25,6 +29,9 @@ namespace allocator
 		allocator.Deallocate(&object);
 	}
 
+	// example usage:
+	// TestObject *testArray =
+	// allocator::newArrayAllocate<TestObject>(memoryManager.Get()->GetLinearAllocator(), 34);
 	template<class T> T *newArrayAllocate(Allocator &allocator, size_t length)
 	{
 		ASSERT(length != 0);
@@ -34,8 +41,8 @@ namespace allocator
 		if (sizeof(size_t) % sizeof(T) > 0)
 			headerSize += 1;
 
-		T *p = ((T*)allocator.Allocate(sizeof(T) * (length + headerSize), __alignof(T)) + headerSize;
-		*(((size_t*)p - 1) = length;
+		T *p = ((T*)allocator.Allocate(sizeof(T) * (length + headerSize), __alignof(T))) + headerSize;
+		*(((size_t*)p - 1)) = length;
 
 		for (size_t i = 0; i < length; i++)
 			new (&p[i]) T;

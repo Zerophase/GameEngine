@@ -75,6 +75,7 @@
     <ClInclude Include="ProxyAllocator.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="StackAllocator.h" />
+    <ClInclude Include="TestObject.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
@@ -86,6 +87,7 @@
     <ClCompile Include="PoolAllocator.cpp" />
     <ClCompile Include="ProxyAllocator.cpp" />
     <ClCompile Include="StackAllocator.cpp" />
+    <ClCompile Include="TestObject.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

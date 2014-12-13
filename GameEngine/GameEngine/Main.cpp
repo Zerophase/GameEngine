@@ -1,193 +1,155 @@
 #include "MemoryManager.h"
-#include "LinearAllocator.h"
-#include "StackAllocator.h"
-#include "FreeListAllocator.h"
-#include "PoolAllocator.h"
+#include "AllocationSchemas.h"
+#include "TestObject.h"
 
+#include <windows.h>
+#include <stdio.h>
+#include <direct.h>
+#include <string.h>
 #include <iostream>
+#include <vector>
 
 using namespace Utilities;
+using namespace allocator;
+using namespace std;
 
 MemoryManager memoryManager;
 
-#define MEM_SIZE 1048576000 //1GB
-
-#define MAX_NUM_ALLOCS 100000
-
-// In real instance create seperate mem for each allocator
-void *mem;
-
-void GetLinearAllocator()
+typedef struct tagBMP
 {
-	memoryManager.Get()->CreateLinearAllocator();
+	BITMAPFILEHEADER	bmfh;
+	BITMAPINFOHEADER	bmih;
+	RGBQUAD*			colorTable;
+	BYTE*				bmpBits;
+}BMP;
 
-	int *number[MAX_NUM_ALLOCS];
-	for (uint i = 1; i < 34; i++)
+int numColors, pixelsPerByte;
+
+void LoadBMP(char *fileName, BMP *bmp)
+{
+	FILE *fp;
+	numColors = 0;
+	pixelsPerByte = 0;
+
+	fopen_s(&fp, fileName, "rb");
+	
+
+	fread(&bmp->bmfh, sizeof(bmp->bmfh), 1, fp);
+
+	if (bmp->bmfh.bfType != 'MB')
 	{
-		// Still need to pass in size of the object
-		number[i - 1] = (int*)memoryManager.Get()->AllocateLinearAllocator(32, 8);
-		*number[i - 1] = i;
+		cout << fileName << " is not a valid bitmap file" << endl;
+		exit(1);
 	}
 
-	for (int i = 0; i < 33; i++)
+	fread(&bmp->bmih, sizeof(bmp->bmih), 1, fp);
+
+	switch (bmp->bmih.biBitCount)
 	{
-		std::cout << "Number Address: " << number[i] <<
-			"Number Value: " << *number[i] << std::endl;
+	case 1:
+		numColors = 1;
+		pixelsPerByte = 8;
+		break;
+	case 4:
+		numColors = 16;
+		pixelsPerByte = 2;
+		break;
+	case 8:
+		numColors = 256;
+		pixelsPerByte = 1;
+		break;
 	}
 
-	memoryManager.Get()->ClearLinearAllocator();
+	if ((bmp->colorTable = newArrayAllocate<RGBQUAD>(memoryManager.Get()->GetFreeListAllocator(), numColors * 4)) == NULL)
+	{
+		fclose(fp);
+		cout << "ERROR: unable to create color table" << endl;
+		exit(1);
+	}
+
+	for (int i = 0; i < numColors; i++)
+	{
+		fread(&bmp->colorTable[i], 4, 1, fp);
+	}
+
+	
+	if ((bmp->bmpBits = newArrayAllocate<BYTE>(memoryManager.Get()->GetFreeListAllocator(), 
+		bmp->bmih.biHeight * bmp->bmih.biWidth)) == NULL)
+	{
+		fclose(fp);
+		cout << "ERROR: could not read file" << endl;
+
+		delete [] bmp->colorTable;
+		exit(1);
+	}
+
+	for (int y = 0; y < bmp->bmih.biHeight; y++)
+	{
+		for (int x = 0; x < bmp->bmih.biWidth; x++)
+		{
+			fread(&bmp->bmpBits[y * bmp->bmih.biWidth + x], 1, 1, fp);
+		}
+	}
+
+	deleteArrayDeallocate<BYTE>(memoryManager.Get()->GetFreeListAllocator(), bmp->bmpBits);
+	deleteArrayDeallocate<RGBQUAD>(memoryManager.Get()->GetFreeListAllocator(), bmp->colorTable);
+	fclose(fp);
 }
 
-void GetStackAllocator()
+void WriteBMP(BMP *bmp)
 {
-	//void *mem = malloc(MEM_SIZE);
-	StackAllocator *stackAllocator = new StackAllocator(MEM_SIZE, mem);
+	FILE *fp;
 
-	int *number[MAX_NUM_ALLOCS];
-	for (uint i = 1; i < 34; i++)
+	BMP bmp2 = *bmp;
+
+	bmp2.bmih.biHeight *= 2;
+	bmp2.bmih.biWidth *= 2;
+
+	bmp2.bmpBits = newArrayAllocate<BYTE>(memoryManager.Get()->GetFreeListAllocator(), bmp2.bmih.biWidth * bmp2.bmih.biHeight);
+	bmp2.bmfh.bfSize = sizeof(bmp2.bmfh) +
+		sizeof(bmp2.bmih) + (sizeof(bmp2.colorTable) * 256) +
+		sizeof(bmp2.bmpBits) * (bmp2.bmih.biHeight * bmp2.bmih.biWidth);
+
+	fopen_s(&fp, "flip.bmp", "wb");
+
+	fwrite(&bmp2.bmfh, sizeof(bmp2.bmfh), 1, fp);
+	fwrite(&bmp2.bmih, sizeof(bmp2.bmih), 1, fp);
+
+	for (int i = 0; i < 256; i++)
 	{
-		number[i - 1] = (int*) stackAllocator->Allocate(32, 8);
-		*number[i - 1] = i;
+		fwrite(&bmp2.colorTable[i], 4, 1, fp);
 	}
 
-	for (int i = 0; i < 33; i++)
+	for (int i = 0; i < 2; i++)
 	{
-		std::cout << "Number Address: " << number[i] <<
-			"Number Value: " << *number[i] << std::endl;
+		for (int y = 0; y < bmp->bmih.biHeight; y++)
+		{
+			for (int j = 0; j < 2; j++)
+			{
+				for (int x = 0; x < bmp->bmih.biWidth; x++)
+				{
+					if (j == 0)
+						fwrite(&bmp->bmpBits[y * bmp->bmih.biWidth + x], 1, 1, fp);
+					else
+						fwrite(&bmp->bmpBits[bmp->bmih.biWidth * bmp->bmih.biHeight -
+						(y * bmp->bmih.biWidth + x)], 1, 1, fp);
+				}
+			}
+		}
 	}
 
-	for (int i = 32; i >= 0; i--)
-	{
-		stackAllocator->Deallocate(number[i]);
-	}
-
-	delete stackAllocator;
-}
-
-void GetFreeListAllocator()
-{
-	memoryManager.Get()->CreateFreeListAllocator();
-
-	int *number[MAX_NUM_ALLOCS];
-	for (uint i = 0; i < 34; i++)
-	{
-		number[i] = (int*)memoryManager.Get()->AllocateFreeListAllocator(32, 8);
-		*number[i] = i + 1;
-	}
-
-	for (int i = 0; i < 34; i++)
-	{
-		std::cout << "Number Address: " << number[i] <<
-			"Number Value: " << *number[i] << std::endl;
-	}
-
-	for (int i = 0; i < 34; i++)
-	{
-		memoryManager.Get()->DeallocateFreeListAllocator(number);
-	}
-}
-
-void GetPoolAllocator()
-{
-	PoolAllocator * poolAllocator = new PoolAllocator(32, 8, MEM_SIZE, mem);
-
-	int *numbers[MAX_NUM_ALLOCS];
-	for (int i = 0; i < 34; i++)
-	{
-		numbers[i] = (int*)poolAllocator->Allocate(32, 8);
-		*numbers[i] = i;
-	}
-
-	for (int i = 0; i < 34; i++)
-	{
-		std::cout << "Number Address: " << numbers[i] <<
-			"Number Value: " << *numbers[i] << std::endl;
-	}
-
-	for (int i = 0; i < 34; i++)
-	{
-		poolAllocator->Deallocate(numbers[i]);
-	}
-
-	delete poolAllocator;
+	fclose(fp);
+	deleteArrayDeallocate<BYTE>(memoryManager.Get()->GetFreeListAllocator(), bmp2.bmpBits);
 }
 
 int main()
 {
-	std::cout << memoryManager.Get();
-	std::cout << std::endl;
-
 	memoryManager.StartUp();
-	mem = malloc(MEM_SIZE);
 
-	std::cout << "Linear Allocator" << std::endl;
-	//GetLinearAllocator();
-	memoryManager.Get()->CreateLinearAllocator();
+	BMP bmp;
+	LoadBMP("C:\\Users\\Zerophase\\Desktop\\GameEngine\\GameEngine\\Debug\\punkmonkey.bmp", &bmp);
+	WriteBMP(&bmp);
 
-	int *numberOne[MAX_NUM_ALLOCS];
-	for (uint i = 1; i < 34; i++)
-	{
-		// Still need to pass in size of the object
-		numberOne[i - 1] = (int*)memoryManager.Get()->AllocateLinearAllocator(32, 8);
-		*numberOne[i - 1] = i * 2;
-	}
-
-	for (int i = 0; i < 33; i++)
-	{
-		std::cout << "Number Address: " << numberOne[i] <<
-			"Number Value: " << *numberOne[i] << std::endl;
-	}
-
-	//memoryManager.Get()->ClearLinearAllocator();
-
-	std::cout << std::endl;
-
-	/*std::cout << "Stack Allocator" << std::endl;
-	GetStackAllocator();*/
-
-	std::cout << std::endl;
-
-	std::cout << "Free List Allocator" << std::endl;
-	//GetFreeListAllocator();
-	memoryManager.Get()->CreateFreeListAllocator();
-
-	int *numberTwo[MAX_NUM_ALLOCS];
-	for (uint i = 0; i < 34; i++)
-	{
-		numberTwo[i] = (int*)memoryManager.Get()->AllocateFreeListAllocator(32, 8);
-		*numberTwo[i] = i + 1;
-	}
-
-	for (int i = 0; i < 34; i++)
-	{
-		std::cout << "Number Address: " << numberTwo[i] <<
-			"Number Value: " << *numberTwo[i] << std::endl;
-	}
-
-	std::cout << std::endl;
-
-	std::cout << "Linear Allocator Values" << std::endl;
-
-	for (int i = 0; i < 33; i++)
-	{
-		std::cout << "Number Address: " << numberOne[i] <<
-			"Number Value: " << *numberOne[i] << std::endl;
-	}
-
-	memoryManager.Get()->ClearLinearAllocator();
-
-	for (int i = 0; i < 34; i++)
-	{
-		memoryManager.Get()->DeallocateFreeListAllocator(numberTwo[i]);
-	}
-
-	std::cout << std::endl;
-
-	/*std::cout << "Pool Allocator" << std::endl;
-	GetPoolAllocator();*/
-
-	memoryManager.Get()->DestroyFreeListAllocator();
-	memoryManager.Get()->DestroyLinearAllocator();
 	memoryManager.ShutDown();
 
 	std::cin.get();
