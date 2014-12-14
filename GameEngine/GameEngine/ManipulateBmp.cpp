@@ -1,18 +1,20 @@
 #include "ManipulateBmp.h"
-#include "FlipUpAndDown.h"
 
 ManipulateBmp::ManipulateBmp()
 {
 	stateMachine = newAllocate<StateMachine<ManipulateBmp>>(
 		memoryManager.Get()->GetFreeListAllocator(), this);
-	stateMachine->SetCurrentState(FlipUpAndDown::Instance());
 }
-
 
 ManipulateBmp::~ManipulateBmp()
 {
 	deleteDeallocate<StateMachine<ManipulateBmp>>(
 		memoryManager.Get()->GetFreeListAllocator(), *stateMachine);
+}
+
+StateMachine<ManipulateBmp> *ManipulateBmp::GetStateMachine() const
+{
+	return stateMachine;
 }
 
 void ManipulateBmp::openFile(char *fileName, FILE *&file, const char *mode)
@@ -121,29 +123,99 @@ void ManipulateBmp::WriteBMP(BMP *bmp)
 		fwrite(&bmp2.colorTable[i], 4, 1, writeToFile);
 	}
 
-	rearangeImage(*&bmp);
-
-	fclose(writeToFile);
 	deleteArrayDeallocate<BYTE>(memoryManager.Get()->GetFreeListAllocator(), bmp2.bmpBits);
 }
 
-void ManipulateBmp::rearangeImage(BMP *bmp)
+void ManipulateBmp::Update()
+{
+	LoadBMP("C:\\Users\\Zerophase\\Desktop\\GameEngine\\GameEngine\\Debug\\punkmonkey.bmp",
+		&bmp);
+	WriteBMP(&bmp);
+	
+	stateMachine->Update();
+
+	fclose(writeToFile);
+}
+
+void ManipulateBmp::FlipUpAndDown()
 {
 	for (int i = 0; i < 2; i++)
 	{
-		for (int y = 0; y < bmp->bmih.biHeight; y++)
+		for (int y = 0; y < bmp.bmih.biHeight; y++)
 		{
 			for (int j = 0; j < 2; j++)
 			{
-				for (int x = 0; x < bmp->bmih.biWidth; x++)
+				for (int x = 0; x < bmp.bmih.biWidth; x++)
 				{
 					if (j == 0)
-						fwrite(&bmp->bmpBits[y * bmp->bmih.biWidth + x], 1, 1, writeToFile);
+						fwrite(&bmp.bmpBits[y * bmp.bmih.biWidth + x], 1, 1, writeToFile);
 					else
-						fwrite(&bmp->bmpBits[bmp->bmih.biWidth * bmp->bmih.biHeight -
-						(y * bmp->bmih.biWidth + x)], 1, 1, writeToFile);
+						fwrite(&bmp.bmpBits[bmp.bmih.biWidth * bmp.bmih.biHeight -
+						(y * bmp.bmih.biWidth + x)], 1, 1, writeToFile);
 				}
 			}
 		}
 	}
 }
+
+void ManipulateBmp::Scramble()
+{
+	for (int i = 0; i < 2; i++)
+	{
+		for (int y = 0; y < bmp.bmih.biHeight; y++)
+		{
+			for (int j = 0; j < 2; j++)
+			{
+				for (int x = 0; x < bmp.bmih.biWidth; x++)
+				{
+					if (j == 0)
+						fwrite(&bmp.bmpBits[x * bmp.bmih.biWidth + x], 1, 1, writeToFile);
+					else
+						fwrite(&bmp.bmpBits[bmp.bmih.biWidth * bmp.bmih.biHeight -
+						(x * bmp.bmih.biWidth + x)], 1, 1, writeToFile);
+				}
+			}
+		}
+	}
+}
+
+void ManipulateBmp::FlipSideways()
+{
+	for (int i = 0; i < 2; i++)
+	{
+		for (int y = 0; y < bmp.bmih.biHeight; y++)
+		{
+			for (int j = 0; j < 2; j++)
+			{
+				for (int x = 0; x < bmp.bmih.biWidth; x++)
+				{
+					if (j == 0)
+						fwrite(&bmp.bmpBits[x * bmp.bmih.biWidth + y], 1, 1, writeToFile);
+					else
+						fwrite(&bmp.bmpBits[bmp.bmih.biWidth * bmp.bmih.biHeight -
+						(x * bmp.bmih.biWidth + y)], 1, 1, writeToFile);
+				}
+			}
+		}
+	}
+}
+
+void ManipulateBmp::WavePattern()
+{
+	for (int i = 0; i < 2; i++)
+	{
+		for (int y = 0; y < bmp.bmih.biHeight; y++)
+		{
+			for (int j = 0; j < 2; j++)
+			{
+				for (int x = 0; x < bmp.bmih.biWidth; x++)
+				{
+					fwrite(&bmp.bmpBits[bmp.bmih.biHeight * y + x 
+					- bmp.bmih.biWidth * y], 1, 1, writeToFile);
+				}
+			}
+		}
+	}
+}
+
+

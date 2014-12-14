@@ -1,10 +1,6 @@
 #include "FlipUpAndDown.h"
 #include "ManipulateBmp.h"
 
-FlipUpAndDown::FlipUpAndDown()
-{
-
-}
 
 FlipUpAndDown * FlipUpAndDown::Instance()
 {
@@ -19,7 +15,7 @@ void FlipUpAndDown::Enter(ManipulateBmp *manipulateBmp)
 
 void FlipUpAndDown::Execute(ManipulateBmp *manipulateBmp)
 {
-
+	manipulateBmp->FlipUpAndDown();
 }
 
 void FlipUpAndDown::Exit(ManipulateBmp *manipulateBmp)

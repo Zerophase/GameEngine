@@ -15,6 +15,7 @@ class ManipulateBmp
 {
 private:
 	StateMachine<ManipulateBmp> *stateMachine;
+	
 
 	int numColors, pixelsPerByte;
 
@@ -27,15 +28,25 @@ private:
 	void readFile(void *&object, size_t objectSize, size_t count, FILE *&file);
 
 	void colorCount(BMP *bmp);
-	void rearangeImage(BMP *bmp);
+	
 
 public:
 	ManipulateBmp();
 	~ManipulateBmp();
 
+	void Update();
+
 	void LoadBMP(char *fileName, BMP *bmp);
 	void WriteBMP(BMP *bmp);
+	
+	void FlipUpAndDown();
+	void Scramble();
+	void FlipSideways();
+	void WavePattern();
 
+	BMP bmp;
+
+	StateMachine<ManipulateBmp> *GetStateMachine() const;
 };
 
 #endif // !MANIPULATE_BMP_H
