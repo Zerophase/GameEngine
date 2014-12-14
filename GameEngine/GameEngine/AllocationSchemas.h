@@ -18,6 +18,13 @@ namespace allocator
 		return new (allocator.Allocate(sizeof(T), __alignof(T))) T;
 	}
 
+	template<class T, class U> T *newAllocate(Allocator &allocator, const U &u)
+	{
+		return new (allocator.Allocate(sizeof(T), 
+			__alignof(T))) 
+			T(u);
+	}
+
 	template<class T> T *newAllocate(Allocator &allocator, const T &t)
 	{
 		return new (allocator.Allocate(sizeof(T), __alignof(T))) T(t);

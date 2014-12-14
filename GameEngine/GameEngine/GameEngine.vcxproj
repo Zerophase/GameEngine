@@ -67,22 +67,29 @@
     <ClInclude Include="AllocationSchemas.h" />
     <ClInclude Include="Allocator.h" />
     <ClInclude Include="Debug.h" />
+    <ClInclude Include="FlipUpAndDown.h" />
     <ClInclude Include="FreeListAllocator.h" />
+    <ClInclude Include="BMP.h" />
     <ClInclude Include="LinearAllocator.h" />
+    <ClInclude Include="ManipulateBmp.h" />
     <ClInclude Include="MemoryManager.h" />
     <ClInclude Include="PointerMath.h" />
     <ClInclude Include="PoolAllocator.h" />
     <ClInclude Include="ProxyAllocator.h" />
     <ClInclude Include="Singleton.h" />
     <ClInclude Include="StackAllocator.h" />
+    <ClInclude Include="State.h" />
+    <ClInclude Include="StateMachine.h" />
     <ClInclude Include="TestObject.h" />
     <ClInclude Include="Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Allocator.cpp" />
+    <ClCompile Include="FipUpAndDown.cpp" />
     <ClCompile Include="FreeListAllocator.cpp" />
     <ClCompile Include="LinearAllocator.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="ManipulateBmp.cpp" />
     <ClCompile Include="MemoryManager.cpp" />
     <ClCompile Include="PoolAllocator.cpp" />
     <ClCompile Include="ProxyAllocator.cpp" />
